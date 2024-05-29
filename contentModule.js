@@ -1,5 +1,5 @@
 
-export { buttonsContent, operatorKeys, operatorFunctions }
+export { buttonsContent, operatorKeys }
 
 const buttonsContent = [
     { 'id': 'AC',
@@ -45,19 +45,3 @@ const buttonsContent = [
 ];
 
 const operatorKeys = ['AC', '<-', '+/-', '%', '÷', 'x', '-', '+', '='];
-
-const operatorFunctions = {
-    'AC': () => {
-        tempString = '';
-        calculateThis = [];
-        operatorPressed = false;
-    },
-    '<-': (str) => str.length <= 1 ? '0' : str.substring(0, str.length - 1),
-    '+/-': (num) => num = -num,
-    '%': null, // need to figure out how to handle this case
-    '÷': (a, b) => a / b,
-    'x': (a, b) => a * b,
-    '+': (a, b) => a + b,
-    '-': (a, b) => a - b,
-    '=': ''
-};

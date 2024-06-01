@@ -6,17 +6,26 @@ const display = document.querySelector('div.display');
 let tempString = '';
 let calculateThis = [];
 let firstNumAdded = false;
+let operatedYet = false;
+let percentOperator = false;
+let decimalAdded = false;
 
 const handleKeypadClick = (click) => {
-    if ( operatorKeys.some((e) => e == click.target.id) ) {
-        if ( click.target.id == '+/-') { handlePlusMinus(tempString); }
-        else if ( click.target.id == 'AC' ) { clearButton(); }
-        else {handleOperator(click.target.id, tempString, calculateThis);}
+    let keyPressed = click.target.id;
+    if ( operatorKeys.some((e) => e == keyPressed) ) {
+        if ( keyPressed == '+/-') { handlePlusMinus(tempString); }
+        else if ( keyPressed == 'AC' ) { clearButton(); }
+        else { handleOperator(keyPressed, tempString, calculateThis) };
     }
    
     else {
-        if ( tempString == '0' ) tempString = '';
-        tempString += click.target.id;
+        if ( tempString == '0' && keyPressed != '.' ) tempString = '';
+        if ( keyPressed == '.' ) {
+            keyPressed = decimalAdded ? '' : keyPressed;
+            decimalAdded = true;
+        }
+        if ( tempString.length > 16 ) return;
+        tempString += keyPressed;
         updateDisplay(tempString);
     }
 };
@@ -45,50 +54,85 @@ const handleBackspace = (str) => {
 }
 
 const updateDisplay = (x) => {
-    display.textContent = x;
+    let num = Number(x);
+    if ( num % Math.trunc(num) > 0 ) num = num.toFixed(14 - Math.trunc(num).toString().length);
+    let newDisplayText = num.toString().length > 16 ? Number(x).toExponential(7) : num;
+    display.style.fontSize = newDisplayText.length > 10 ? '2.5rem' : '4rem';
+    display.textContent = newDisplayText;
 }
 
 const clearButton = () => {
     tempString = '';
     calculateThis = [];
     firstNumAdded = false;
+    operatedYet = false;
+    percentOperator = false;
+    decimalAdded = false;
     updateDisplay('0');
 }
 
 const operatorFunctions = {
-    '%': null, // need to figure out how to handle this case
     '÷': (a, b) => a / b,
     'x': (a, b) => a * b,
     '+': (a, b) => a + b,
     '-': (a, b) => a - b,
 };
 
-const acceptFirstArgument = (num, operator, arr) => {
-    if ( arr[1] ) return;
+const acceptFirstArgument = (num, operator) => {
+    if ( firstNumAdded ) return;
     calculateThis.push(num, operator);
-    firstNumAdded = true;
+    firstNumAdded = !firstNumAdded;
     tempString = '';
-    console.log(calculateThis);
+};
+
+const setupNextOperation = (num, operator) => {
+    if ( operator == "=" ) {
+        calculateThis = [];
+        tempString = num;
+        firstNumAdded = false;
+    }
+    else {
+        calculateThis = operator == undefined ? [num] : [num, operator];
+        tempString = '';
+        }
+    operatedYet = true;
+    percentOperator = false;
 }
 
 const handleOperator = (x, str, arr) => {
     switch (x) {
         case '=':
-
-            updateDisplay(operatorFunctions[arr[1]](arr[0], Number(str)));
+            let result = operatorFunctions[arr[1]](arr[0], Number(str));
+            updateDisplay(result.toString());
+            setupNextOperation(result, x);
             break;
         case '<-':
             handleBackspace(str);
             break;
+        case '%':
+            if ( !firstNumAdded || percentOperator ) break;
+            let pNum = (arr[1] == '*' || arr[1] == '%') ? str / 100 : arr[0] * (str / 100);
+            updateDisplay(pNum.toString());
+            tempString = pNum;
+            percentOperator = true;
+            break;
         default:
-            acceptFirstArgument( Number(str), x, arr );
+           if ( !firstNumAdded ) { 
+                    acceptFirstArgument(Number(str), x);
+                    break;
+            }
 
-    }
+            else {
+                    let nextResult = operatorFunctions[arr[1]](arr[0], Number(str));
+                    setupNextOperation(nextResult, x);
+                    updateDisplay(nextResult.toString());
+            }
+        }
 };
 
 // Next steps:
 
 //  - redo handleKeypadClick logic - SOLVED
-//  - add function for '=' to do the Math 
-//  - figure out % math and how to calculate that. (maybe similar to =. Test on apple calculator and mimic logic.)
-//  - 
+//  - add function for '=' to do the Math - SOLVED
+//  - figure out % math and how to calculate that. (maybe similar to =. Test on apple calculator and mimic logic.) - SOLVED
+//  - add logic to continue math after operating - SOLVED

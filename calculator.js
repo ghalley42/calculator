@@ -136,3 +136,6 @@ const handleOperator = (x, str, arr) => {
 //  - add function for '=' to do the Math - SOLVED
 //  - figure out % math and how to calculate that. (maybe similar to =. Test on apple calculator and mimic logic.) - SOLVED
 //  - add logic to continue math after operating - SOLVED
+//  - fix logic for scientific notation
+//  - fix logic for decimal truncator
+//  - moved logic for scientfic notation and decimal truncator into separate function. Update display is not the appropriate place to do it.

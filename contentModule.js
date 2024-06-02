@@ -7,7 +7,7 @@ const buttonsContent = [
     { 'id': '<-',
     'color': "darkgray"},
     { 'id': '+/-',
-    'color': "darkgray"},, 
+    'color': "darkgray"}, 
     { 'id': '%', 
     'color': "darkgray"},
     { 'id': '7', 

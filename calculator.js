@@ -1,25 +1,34 @@
 import { buttonsContent, operatorKeys } from "./contentModule.js"
 
+// Select Key Elements
 const keyPad = document.querySelector('div.keypad');
 const display = document.querySelector('div.display');
+const validKeys = [...buttonsContent.map((button) => button.id), 'Enter', 'Escape', 'Backspace']
 
+// Define control variables
 let tempString = '';
 let calculateThis = [];
 let firstNumAdded = false;
 let operatedYet = false;
 let percentOperator = false;
 let decimalAdded = false;
+let resetDisplayToggle = false;
+
 
 const handleKeypadClick = (click) => {
-    let keyPressed = click.target.id;
+    if (!validKeys.some((key) => key == click.key || key == click.target.id)) return;
+    let keyPressed = convertKeypress(validKeys.some((button) => button == click.key) ? click.key : click.target.id);
+   
     if ( operatorKeys.some((e) => e == keyPressed) ) {
         if ( keyPressed == '+/-') { handlePlusMinus(tempString); }
         else if ( keyPressed == 'AC' ) { clearButton(); }
         else { handleOperator(keyPressed, tempString, calculateThis) };
     }
-   
     else {
-        if ( tempString == '0' && keyPressed != '.' ) tempString = '';
+        if ( tempString == '0' && keyPressed != '.' || resetDisplayToggle && keyPressed != '.' ) {
+            tempString = '';
+            resetDisplayToggle = !resetDisplayToggle;
+        }
         if ( keyPressed == '.' ) {
             keyPressed = decimalAdded ? '' : keyPressed;
             decimalAdded = true;
@@ -30,16 +39,20 @@ const handleKeypadClick = (click) => {
     }
 };
 
-buttonsContent.forEach((button) => {
-    let newButton = document.createElement('div');
-    newButton.classList.add('btn');
-    newButton.textContent = button.id;
-    newButton.id = button.id;
-    newButton.style.backgroundColor = button.color;
-    if ( button.color != 'darkgray' ) newButton.style.color = 'white';
-    keyPad.append(newButton);
-    newButton.addEventListener('click', handleKeypadClick);
-});
+const convertKeypress = (x) => {
+    let theKey = x;
+        switch (theKey) {
+        case 'Enter':
+            theKey = '=';
+            break;
+        case 'Escape':
+            theKey = 'AC';
+            break;
+        case 'Backspace':
+            theKey = '<-';
+    }
+    return theKey;
+}
 
 const handlePlusMinus = (str) => {
     tempString = -str + '';
@@ -54,11 +67,8 @@ const handleBackspace = (str) => {
 }
 
 const updateDisplay = (x) => {
-    let num = Number(x);
-    if ( num % Math.trunc(num) > 0 ) num = num.toFixed(14 - Math.trunc(num).toString().length);
-    let newDisplayText = num.toString().length > 16 ? Number(x).toExponential(7) : num;
-    display.style.fontSize = newDisplayText.length > 10 ? '2.5rem' : '4rem';
-    display.textContent = newDisplayText;
+    display.style.fontSize = x.length > 10 ? '2.5rem' : '4rem';
+    display.textContent = x;
 }
 
 const clearButton = () => {
@@ -97,13 +107,26 @@ const setupNextOperation = (num, operator) => {
         }
     operatedYet = true;
     percentOperator = false;
+    resetDisplayToggle = true;
+}
+
+const formatNumForDisplay = (x) => {
+    let num = Number(x);
+    if ( num % Math.trunc(num) > 0 ) num = num.toFixed(4);
+    return num.toString().length > 16 ? num.toExponential(7).toString() : parseFloat(num).toString();
+}
+
+const handlePercent = (array, string) => {
+    if ( array[1] == '%' || array[1] == 'x' ) return string / 100;
+    return array[0] * string / 100;
 }
 
 const handleOperator = (x, str, arr) => {
     switch (x) {
         case '=':
+            if (!firstNumAdded) break;
             let result = operatorFunctions[arr[1]](arr[0], Number(str));
-            updateDisplay(result.toString());
+            updateDisplay(formatNumForDisplay(result));
             setupNextOperation(result, x);
             break;
         case '<-':
@@ -111,7 +134,8 @@ const handleOperator = (x, str, arr) => {
             break;
         case '%':
             if ( !firstNumAdded || percentOperator ) break;
-            let pNum = (arr[1] == '*' || arr[1] == '%') ? str / 100 : arr[0] * (str / 100);
+            console.log(arr, str)
+            let pNum = handlePercent(arr, str);
             updateDisplay(pNum.toString());
             tempString = pNum;
             percentOperator = true;
@@ -130,12 +154,16 @@ const handleOperator = (x, str, arr) => {
         }
 };
 
-// Next steps:
+//add UI and set event listeners
+window.addEventListener('keyup', handleKeypadClick);
 
-//  - redo handleKeypadClick logic - SOLVED
-//  - add function for '=' to do the Math - SOLVED
-//  - figure out % math and how to calculate that. (maybe similar to =. Test on apple calculator and mimic logic.) - SOLVED
-//  - add logic to continue math after operating - SOLVED
-//  - fix logic for scientific notation
-//  - fix logic for decimal truncator
-//  - moved logic for scientfic notation and decimal truncator into separate function. Update display is not the appropriate place to do it.
+buttonsContent.forEach((button) => {
+    let newButton = document.createElement('div');
+    newButton.classList.add('btn');
+    newButton.textContent = button.id;
+    newButton.id = button.id;
+    newButton.style.backgroundColor = button.color;
+    if ( button.color != 'darkgray' ) newButton.style.color = 'white';
+    keyPad.append(newButton);
+    newButton.addEventListener('click', handleKeypadClick);
+});

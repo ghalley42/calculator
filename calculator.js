@@ -5,6 +5,14 @@ const keyPad = document.querySelector('div.keypad');
 const display = document.querySelector('div.display');
 const validKeys = [...buttonsContent.map((button) => button.id), 'Enter', 'Escape', 'Backspace']
 
+// Define functions for basic operators
+const operatorFunctions = {
+    '÷': (a, b) => a / b,
+    'x': (a, b) => a * b,
+    '+': (a, b) => a + b,
+    '-': (a, b) => a - b,
+};
+
 // Define control variables
 let tempString = '';
 let calculateThis = [];
@@ -14,7 +22,7 @@ let percentOperator = false;
 let decimalAdded = false;
 let resetDisplayToggle = false;
 
-
+// Define logic for handling user inputs
 const handleKeypadClick = (click) => {
     if (!validKeys.some((key) => key == click.key || key == click.target.id)) return;
     let keyPressed = convertKeypress(validKeys.some((button) => button == click.key) ? click.key : click.target.id);
@@ -54,23 +62,19 @@ const convertKeypress = (x) => {
     return theKey;
 }
 
-const handlePlusMinus = (str) => {
-    tempString = -str + '';
-    updateDisplay(tempString);
-}
-
-const handleBackspace = (str) => {
-    str = str.length <= 1 ? '0' : str.substring(0, str.length - 1);
-    if (str == '-' ) str = '0';
-    tempString = str;
-    updateDisplay(tempString);
-}
-
+// Define logic for updating the display
 const updateDisplay = (x) => {
     display.style.fontSize = x.length > 10 ? '2.5rem' : '4rem';
     display.textContent = x;
 }
 
+const formatNumForDisplay = (x) => {
+    let num = Number(x);
+    if ( num % Math.trunc(num) > 0 ) num = num.toFixed(4);
+    return num.toString().length > 16 ? num.toExponential(7).toString() : parseFloat(num).toString();
+}
+
+// Define logic for resetting calculator
 const clearButton = () => {
     tempString = '';
     calculateThis = [];
@@ -81,13 +85,7 @@ const clearButton = () => {
     updateDisplay('0');
 }
 
-const operatorFunctions = {
-    '÷': (a, b) => a / b,
-    'x': (a, b) => a * b,
-    '+': (a, b) => a + b,
-    '-': (a, b) => a - b,
-};
-
+// Define logic for calculator operations
 const acceptFirstArgument = (num, operator) => {
     if ( firstNumAdded ) return;
     calculateThis.push(num, operator);
@@ -110,17 +108,24 @@ const setupNextOperation = (num, operator) => {
     resetDisplayToggle = true;
 }
 
-const formatNumForDisplay = (x) => {
-    let num = Number(x);
-    if ( num % Math.trunc(num) > 0 ) num = num.toFixed(4);
-    return num.toString().length > 16 ? num.toExponential(7).toString() : parseFloat(num).toString();
-}
-
 const handlePercent = (array, string) => {
     if ( array[1] == '%' || array[1] == 'x' ) return string / 100;
     return array[0] * string / 100;
 }
 
+const handlePlusMinus = (str) => {
+    tempString = -str + '';
+    updateDisplay(tempString);
+}
+
+const handleBackspace = (str) => {
+    str = str.length <= 1 ? '0' : str.substring(0, str.length - 1);
+    if (str == '-' ) str = '0';
+    tempString = str;
+    updateDisplay(tempString);
+}
+
+// Define main operator logic
 const handleOperator = (x, str, arr) => {
     switch (x) {
         case '=':
@@ -154,7 +159,7 @@ const handleOperator = (x, str, arr) => {
         }
 };
 
-//add UI and set event listeners
+//create UI, add to DOM, and set input event listeners
 window.addEventListener('keyup', handleKeypadClick);
 
 buttonsContent.forEach((button) => {

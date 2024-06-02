@@ -64,14 +64,14 @@ const convertKeypress = (x) => {
 
 // Define logic for updating the display
 const updateDisplay = (x) => {
-    display.style.fontSize = x.length > 10 ? '2.5rem' : '4rem';
+    display.style.fontSize = x.length > 10 ? '2.3rem' : '4rem';
     display.textContent = x;
 }
 
 const formatNumForDisplay = (x) => {
     let num = Number(x);
     if ( num % Math.trunc(num) > 0 ) num = num.toFixed(4);
-    return num.toString().length > 16 ? num.toExponential(7).toString() : parseFloat(num).toString();
+    return num.toString().length > 14 ? num.toExponential(7).toString() : parseFloat(num).toString();
 }
 
 // Define logic for resetting calculator
